@@ -1,0 +1,14 @@
+server:
+  http_listen_port: 12345 # Expose Alloy UI on this port (optional)
+rbac:
+  create: true
+serviceAccount:
+  create: true
+  name: alloy
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 100m
+    memory: 256Mi

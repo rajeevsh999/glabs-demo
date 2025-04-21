@@ -1,0 +1,50 @@
+// Simple Alloy configuration for node-level metrics
+
+// Built-in node_exporter integration
+node_exporter "nodes" {
+  scrape_interval = "15s"
+  http_client_config {
+    tls_config {
+      insecure_skip_verify = true // For local k3s, adjust for production
+    }
+  }
+  discovery {
+    kubernetes {
+      role = "node"
+    }
+  }
+  forward_to = [remote.http.prometheus.send]
+}
+
+// Scrape cAdvisor metrics from kubelets
+kubernetes_sd "cadvisor" {
+  role = "node"
+}
+
+prometheus.scrape "cadvisor_metrics" {
+  targets = kubernetes_sd.cadvisor.targets
+  scrape_interval = "15s"
+  metrics_path = "/metrics/cadvisor"
+  scheme = "https"
+  http_client_config {
+    tls_config {
+      insecure_skip_verify = true // For local k3s, adjust for production
+    }
+    bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+  }
+  relabel_configs {
+    action = "labelmap"
+    regex = "__name__"
+    replacement = "container_$1"
+  }
+  forward_to = [remote.http.prometheus.send]
+}
+
+// Remote write to Grafana Cloud (or your Prometheus instance)
+remote.http "prometheus" {
+  url = "YOUR_GRAFANA_CLOUD_REMOTE_WRITE_URL"
+  headers = {
+    "X-Prometheus-Remote-Write-Version" = "0.1.0"
+    "Authorization" = "Basic YOUR_GRAFANA_CLOUD_REMOTE_WRITE_BASIC_AUTH"
+  }
+}

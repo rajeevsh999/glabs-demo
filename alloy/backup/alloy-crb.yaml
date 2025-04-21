@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: alloy-node-reader-binding
+subjects:
+- kind: ServiceAccount
+  name: alloy
+  namespace: grafana-alloy
+roleRef:
+  kind: ClusterRole
+  name: alloy-node-reader
+  apiGroup: rbac.authorization.k8s.io
